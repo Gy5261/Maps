@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Global de Terremotos </title>
+    <title>Mapa Global de Terremotos</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.2.1/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -116,43 +116,29 @@
             transform: translateY(0);
         }
 
-        @media (max-width: 768px) {
-            .container {
-                height: auto;
-            }
-
-            .map-container {
-                height: calc(100vh - 180px);
-                padding: 10px;
-            }
-
-            #map {
-                height: 100%;
-            }
-
-            .legend {
-                margin-top: 10px;
-                font-size: 0.9em;
-            }
-
-            .action-buttons {
-                left: 10px;
-                right: 10px;
-                justify-content: center;
-                bottom: 10px;
-            }
-
-            .action-button {
-                padding: 8px 16px;
-                font-size: 14px;
-            }
-
+        /* Responsividad para móviles */
+        @media screen and (max-width: 600px) {
             h1 {
                 font-size: 1.5em;
             }
 
-            header p {
-                font-size: 0.9em;
+            .action-buttons {
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .action-button {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+
+            .legend {
+                padding: 10px;
+                margin-top: 10px;
+            }
+
+            #map {
+                min-height: 200px;
             }
         }
     </style>
@@ -187,9 +173,11 @@
 
     <div class="action-buttons">
         <a href="INFO.html" target="_blank">
-            <button class="action-button" id="commentButton">Informacion</button>
-        </a>        
+            <button class="action-button" id="commentButton">Información</button>
+        </a>
         <button class="action-button" id="exportButton">Exportar Excel</button>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([20, 0], 2);
@@ -203,19 +191,6 @@
         var paisesEnConflicto = [
             { nombre: 'Ucrania', coords: [48.3794, 31.1656] },
             { nombre: 'Siria', coords: [34.8021, 38.9968] },
-            { nombre: 'Afganistán', coords: [33.9391, 67.7099] },
-            { nombre: 'Sudán', coords: [12.8628, 30.2176] },
-            { nombre: 'Yemen', coords: [15.5527, 48.5164] },
-            { nombre: 'Myanmar', coords: [21.9162, 95.9560] },
-            { nombre: 'Etiopía', coords: [9.1450, 40.4897] },
-            { nombre: 'Somalia', coords: [5.1521, 46.1996] },
-            { nombre: 'República Democrática del Congo', coords: [-4.0383, 21.7587] },
-            { nombre: 'Nigeria', coords: [9.0820, 8.6753] },
-            { nombre: 'Irak', coords: [33.2232, 43.6793] },
-            { nombre: 'Libia', coords: [26.3351, 17.2283] },
-            { nombre: 'Mali', coords: [17.5707, -3.9962] },
-            { nombre: 'República Centroafricana', coords: [6.6111, 20.9394] },
-            { nombre: 'Burkina Faso', coords: [12.2383, -1.5616] }
         ];
 
         var datosTerremotos = [];
@@ -229,7 +204,7 @@
                     color: '#FFFF00',
                     fillColor: '#FFFF00',
                     fillOpacity: 0.5
-                }).bindPopup(<b>${pais.nombre}</b><br><span style="color:#ff4500;">Alerta: País en conflicto actualmente.</span>)
+                }).bindPopup(`<b>${pais.nombre}</b><br><span style="color:#ff4500;">Alerta: País en conflicto actualmente.</span>`)
                 .addTo(conflictLayer);
             });
         }
@@ -247,6 +222,9 @@
                         var coords = feature.geometry.coordinates;
                         var mag = feature.properties.mag;
                         var time = new Date(feature.properties.time);
+
+                        // Ajuste a la zona horaria COT
+                        var timeCOT = new Date(time.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
                         var seisHorasAtras = new Date(Date.now() - 6 * 60 * 60 * 1000);
 
                         var color = time >= seisHorasAtras ? '#ff0000' : '#ff6666';
@@ -257,15 +235,15 @@
                             fillColor: color,
                             fillOpacity: 0.7
                         }).bindPopup(
-                            <b>Magnitud:</b> ${mag}<br> +
-                            <b>Ubicación:</b> ${feature.properties.place}<br> +
-                            <b>Hora:</b> ${time.toUTCString()}
+                            `<b>Magnitud:</b> ${mag}<br>` +
+                            `<b>Ubicación:</b> ${feature.properties.place}<br>` +
+                            `<b>Hora:</b> ${timeCOT.toLocaleString('es-CO')}`
                         ).addTo(earthquakeLayer);
 
                         datosTerremotos.push({
                             magnitud: mag,
                             ubicacion: feature.properties.place,
-                            fecha: time.toUTCString()
+                            fecha: timeCOT.toLocaleString('es-CO')
                         });
                     });
                 });
@@ -274,6 +252,8 @@
         actualizarMapa();
 
         setInterval(actualizarMapa, 10 * 60 * 1000);
+
+        document.getElementById('exportButton').addEventListener('click', generarExcel);
 
         async function generarExcel() {
             const workbook = new ExcelJS.Workbook();
@@ -286,55 +266,26 @@
             ];
 
             worksheet.getRow(1).eachCell({ includeEmpty: true }, (cell) => {
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: '00FF00' }
+                    fgColor: { argb: 'FF3B82F6' }
                 };
-                cell.font = { color: { argb: '000000' }, bold: true };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
             });
 
-            datosTerremotos.forEach(terremoto => {
-                worksheet.addRow(terremoto);
-            });
-
-            worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-                if (rowNumber > 1) {
-                    const mag = row.getCell(1).value;
-                    let color = 'FFFF00';
-                    if (mag >= 5.7) {
-                        color = 'FF0000';
-                    } else if (mag >= 3.1) {
-                        color = 'FFA500';
-                    } else if (mag >= 0.0) {
-                        color = '00FF00';
-                    }
-                    row.getCell(1).font = { color: { argb: color } };
-                }
-            });
-
-            worksheet.eachRow({ includeEmpty: true }, (row) => {
-                row.eachCell({ includeEmpty: true }, (cell) => {
-                    cell.border = {
-                        top: { style: 'thin' },
-                        left: { style: 'thin' },
-                        bottom: { style: 'thin' },
-                        right: { style: 'thin' }
-                    };
+            datosTerremotos.forEach((dato, index) => {
+                worksheet.addRow({
+                    magnitud: dato.magnitud,
+                    ubicacion: dato.ubicacion,
+                    fecha: dato.fecha
                 });
             });
 
-            workbook.xlsx.writeBuffer().then((buffer) => {
-                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                saveAs(blob, 'Datos_Terremotos.xlsx');
-            });
+            const buffer = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'datos_terremotos.xlsx');
         }
-
-        document.getElementById('exportButton').addEventListener('click', generarExcel);
-
-        window.addEventListener('resize', () => {
-            map.invalidateSize();
-        });
     </script>
 </body>
 </html>
