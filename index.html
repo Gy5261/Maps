@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Global de Terremotos y PQR</title>
+    <title>Mapa Global de Terremotos </title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.2.1/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -186,14 +186,10 @@
     </div>
 
     <div class="action-buttons">
-        <a href="https://wa.me/573042858889?text=Tengo%20un%20comentario%20y%2Fo%20sugerencia" target="_blank">
-            <button class="action-button" id="commentButton">Comentarios y contacto</button>
+        <a href="INFO.html" target="_blank">
+            <button class="action-button" id="commentButton">Informacion</button>
         </a>        
         <button class="action-button" id="exportButton">Exportar Excel</button>
-    </div>
-    <footer>
-        &copy; 2024 David Cossio.
-    </footer>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([20, 0], 2);
@@ -240,19 +236,6 @@
 
         inicializarMapaConflictos();
 
-        function formatearFechaColombiana(fecha) {
-            return new Intl.DateTimeFormat('es-CO', {
-                timeZone: 'America/Bogota',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            }).format(fecha);
-        }
-
         function actualizarMapa() {
             fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson')
                 .then(response => response.json())
@@ -276,13 +259,13 @@
                         }).bindPopup(
                             `<b>Magnitud:</b> ${mag}<br>` +
                             `<b>Ubicación:</b> ${feature.properties.place}<br>` +
-                            `<b>Hora:</b> ${formatearFechaColombiana(time)}`
+                            `<b>Hora:</b> ${time.toUTCString()}`
                         ).addTo(earthquakeLayer);
 
                         datosTerremotos.push({
                             magnitud: mag,
                             ubicacion: feature.properties.place,
-                            fecha: formatearFechaColombiana(time)
+                            fecha: time.toUTCString()
                         });
                     });
                 });
