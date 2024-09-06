@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins&display=swap"
+    rel="stylesheet"
+  />
+  <title>Earthquake Search</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(#272626, #2563eb);
+    }
+
+    .btn-atras {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s ease;
+    }
+
+    .btn-atras:hover {
+      background-color: #333;
+    }
+
+    .btn-wasap {
+      position: absolute;
+      top: 100px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      background-color: #25d366;
+      padding: 10px 20px;
+      border-radius: 50px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s ease;
+    }
+
+    .btn-wasap:hover {
+      background-color: #1ebe5b;
+    }
+
+    .btn-wasap i {
+      margin-right: 10px;
+      font-size: 24px;
+    }
+
+    .buscar {
+      position: relative;
+      padding: 5px;
+      margin-bottom: 20px;
+    }
+
+    .buscar input {
+      width: 0;
+      height: 40px;
+      padding: 0 20px;
+      font-size: 18px;
+      color: #222;
+      outline: none;
+      border: 1px solid silver;
+      border-radius: 30px;
+      transition: all 0.6s ease;
+    }
+
+    .btn {
+      width: 55px;
+      height: 55px;
+      line-height: 55px;
+      top: 0;
+      right: 0;
+      position: absolute;
+      background: #000000;
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .buscar:hover input {
+      width: 240px;
+    }
+
+    .buscar input:focus {
+      width: 240px;
+    }
+
+    .contenedor {
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .resultados {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 20px;
+      text-align: left;
+      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .terremoto {
+      padding: 10px;
+      margin: 10px 0;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+    }
+
+    .terremoto p {
+      margin: 5px 0;
+    }
+
+    .titulo {
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="btn-atras" onclick="window.location.href='index.html';">
+    <i class="fas fa-arrow-left"></i>
+  </div>
+
+  <a
+    href="https://wa.me/573042858889"
+    target="_blank"
+    class="btn-wasap"
+  >
+    <i class="fab fa-whatsapp"></i> Contáctanos
+  </a>
+
+  <div class="buscar">
+    <input type="text" id="pais" placeholder="Buscar país" required />
+    <div class="btn" onclick="buscarTerremotos()">
+      <i class="fas fa-search icon"></i>
+    </div>
+  </div>
+  
+  <div id="contenedorPrincipal" class="contenedor"></div>
+
+  <script>
+    async function buscarTerremotos() {
+      const pais = document.getElementById('pais').value.trim().toLowerCase();
+      const respuesta = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson');
+      const datos = await respuesta.json();
+      let terremotos = datos.features.filter(feature => 
+        feature.properties.place.toLowerCase().includes(pais)
+      );
+
+      const contenedorPrincipal = document.getElementById('contenedorPrincipal');
+      contenedorPrincipal.innerHTML = '';
+
+      if (terremotos.length === 0) {
+        const respuestaHistorica = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson');
+        const datosHistoricos = await respuestaHistorica.json();
+        terremotos = datosHistoricos.features.filter(feature => 
+          feature.properties.place.toLowerCase().includes(pais)
+        );
+        
+        if (terremotos.length === 0) {
+          contenedorPrincipal.innerHTML = '<p class="titulo">No se encontraron resultados para el país buscado.</p>';
+        } else {
+          contenedorPrincipal.innerHTML = '<p class="titulo">Histórico de temblores:</p>';
+        }
+      } else {
+        contenedorPrincipal.innerHTML = '<p class="titulo">Temblores recientes:</p>';
+      }
+
+      if (terremotos.length > 0) {
+        terremotos.sort((a, b) => b.properties.time - a.properties.time);
+        const ultimos3 = terremotos.slice(0, 3);
+
+        ultimos3.forEach(terremoto => {
+          const fecha = new Date(terremoto.properties.time).toLocaleString('es-CO');
+          const terremotoHTML = `
+            <div class="terremoto">
+              <p><strong>País:</strong> ${terremoto.properties.place}</p>
+              <p><strong>Magnitud:</strong> ${terremoto.properties.mag}</p>
+              <p><strong>Fecha:</strong> ${fecha}</p>
+            </div>`;
+
+          contenedorPrincipal.innerHTML += terremotoHTML;
+        });
+      }
+    }
+  </script>
+</body>
+</html>
+
